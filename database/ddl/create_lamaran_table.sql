@@ -7,8 +7,8 @@ CREATE TABLE lamaran (
     cv_url VARCHAR(1024),
     transkrip_url VARCHAR(1024),
     note_dosen TEXT,
-    lowongan_id INT NOT NULL,
-    mahasiswa_nrp VARCHAR(10) NOT NULL,
+    lowongan_id INT NOT NULL UNIQUE,
+    mahasiswa_nrp VARCHAR(10) NOT NULL UNIQUE,
 
     FOREIGN KEY (lowongan_id) REFERENCES lowongan(id)
         ON UPDATE CASCADE
@@ -17,8 +17,6 @@ CREATE TABLE lamaran (
     FOREIGN KEY (mahasiswa_nrp) REFERENCES mahasiswa(nrp)
         ON UPDATE CASCADE
         ON DELETE CASCADE
-
-    UNIQUE (lowongan_id, mahasiswa_nrp)
 );
 
 CREATE INDEX idx_lamaran_lowongan_id ON lamaran(lowongan_id);
