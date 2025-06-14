@@ -6,7 +6,8 @@ CREATE TABLE mahasiswa (
     password VARCHAR(50) NOT NULL,
     nama_mahasiswa VARCHAR(255) NOT NULL,
     no_telp VARCHAR(16),
-
+    departemen_id INT,
+    
     FOREIGN KEY (departemen_id) REFERENCES departemen(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
