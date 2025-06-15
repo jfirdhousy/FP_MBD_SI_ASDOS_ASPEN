@@ -1,16 +1,20 @@
 -- DDL for table 'lowongan'
 CREATE TABLE lowongan (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nama_lowonga VARCHAR(150),
-    deskripsi LONGTEXT,
-    jumlah_diterim INT,
-    jenis ENUM('Asisten Dosen', 'Asisten Penelitian', 'Asisten Praktikum', 'Asisten Lab', 'Asisten Lainnya'), -- Assuming common types for 'jenis'
+    id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    nama_lowongan VARCHAR(150) NOT NULL,
+    deskripsi LONGTEXT NOT NULL,
+    jumlah_diterima INT NOT NULL,
+    jenis ENUM('Asisten Dosen', 'Asisten Penelitian'),
     tanggal_post DATE,
     deadline DATE,
-    dosen_nip VARCHAR(18),
-    CONSTRAINT fk_lowongan_dosen
-        FOREIGN KEY (dosen_nip)
-        REFERENCES dosen(nip)
+    dosen_nip VARCHAR(18) NOT NULL UNIQUE,
+
+    FOREIGN KEY (dosen_nip) REFERENCES dosen(nip)
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
+
+CREATE INDEX idx_lowongan_dosen_nip ON lowongan(dosen_nip);
+CREATE INDEX idx_lowongan_jenis ON lowongan(jenis);
+CREATE INDEX idx_lowongan_tanggal_post ON lowongan(tanggal_post);
+CREATE INDEX idx_lowongan_deadline ON lowongan(deadline);
