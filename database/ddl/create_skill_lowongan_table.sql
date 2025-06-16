@@ -8,6 +8,3 @@ CREATE TABLE skill_lowongan (
     FOREIGN KEY (skill_id) REFERENCES skill(id) ON DELETE CASCADE,
     UNIQUE (lowongan_id, skill_id) -- Memastikan skill tidak duplikat untuk satu lowongan
 );
-
-CREATE INDEX idx_skill_lowongan_lowongan_id ON skill_lowongan(lowongan_id);
-CREATE INDEX idx_skill_lowongan_skill_id ON skill_lowongan(skill_id);
