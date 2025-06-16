@@ -1,19 +1,13 @@
 -- database/queries/join/detail_lamaran_mahasiswa.sql
-
 SELECT
-    l.id AS lamaran_id,
+    l.id AS id_lamaran,
     l.tanggal_melamar,
     l.status_lamaran,
     m.nrp,
     m.nama_mahasiswa,
     m.email,
-    m.jurusan,
-    l.lowongan_id
+    m.no_telp
 FROM
     lamaran l
-JOIN
-    mahasiswa m ON l.mahasiswa_nrp = m.nrp
-WHERE
-    m.jurusan = 'Teknik Informatika'
-ORDER BY
-    m.nama_mahasiswa, l.tanggal_melamar DESC;
+INNER JOIN
+    mahasiswa m ON l.mahasiswa_nrp = m.nrp;
