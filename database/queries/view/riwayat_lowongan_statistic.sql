@@ -7,7 +7,7 @@ SELECT
     l.deadline,
     d.nama_dosen,
     d.nip AS dosen_nip,
-    dep.nama_departemen AS nama_departemen,
+    dep.nama_departemen AS departemen,
     COUNT(lr.id) AS total_lamaran,
     SUM(CASE WHEN lr.status_lamar = 'Diterima' THEN 1 ELSE 0 END) AS lamaran_diterima,
     SUM(CASE WHEN lr.status_lamar = 'Ditolak' THEN 1 ELSE 0 END) AS lamaran_ditolak,
@@ -23,6 +23,6 @@ LEFT JOIN -- Gunakan LEFT JOIN agar lowongan tanpa lamaran tetap muncul
 WHERE
     l.deadline < CURDATE() -- Filter lowongan yang sudah tidak aktif
 GROUP BY
-    l.id, l.nama_lowonga, l.jenis, l.tanggal_post, l.deadline, d.nama_dosen, d.nip, dep.nama_departe
+    l.id, l.nama_lowongan, l.jenis, l.tanggal_post, l.deadline, d.nama_dosen, d.nip, dep.nama_departemen
 ORDER BY
     l.deadline DESC;
