@@ -1,4 +1,4 @@
---ddl
+--DDL tabel 'skill'
 
 CREATE TABLE skill (
     id INT AUTO_INCREMENT PRIMARY KEY,
