@@ -1,4 +1,4 @@
---ddl
+--DDL tabel 'mahasiswa_skill'
 
 CREATE TABLE mahasiswa_skill (
     mahasiswa_n VARCHAR(10) NOT NULL,
