@@ -1,4 +1,4 @@
--- database/queries/searching/lamaran_by_jurusan_mahasiswa.sql
+-- database/queries/join/detail_lamaran_mahasiswa.sql
 
 SELECT
     l.id AS lamaran_id,
