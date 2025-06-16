@@ -1,4 +1,4 @@
---DDL tabel 'skill'
+--database/ddl/create_skill.sql
 
 CREATE TABLE skill (
     id INT AUTO_INCREMENT PRIMARY KEY,
