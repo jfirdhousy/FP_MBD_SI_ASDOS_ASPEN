@@ -7,7 +7,7 @@ SELECT
     l.deadline,
     d.nama_dosen,
     d.nip AS dosen_nip,
-    dep.nama_departe AS nama_departemen,
+    dep.nama_departemen AS nama_departemen,
     COUNT(lr.id) AS total_lamaran,
     SUM(CASE WHEN lr.status_lamar = 'Diterima' THEN 1 ELSE 0 END) AS lamaran_diterima,
     SUM(CASE WHEN lr.status_lamar = 'Ditolak' THEN 1 ELSE 0 END) AS lamaran_ditolak,
