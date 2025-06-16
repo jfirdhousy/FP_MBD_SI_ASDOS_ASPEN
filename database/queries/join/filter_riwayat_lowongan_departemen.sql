@@ -1,6 +1,6 @@
 SELECT
     l.id AS lowongan_id,
-    l.nama_lowonga,
+    l.nama_lowongan,
     l.jenis,
     l.tanggal_post,
     l.deadline,
