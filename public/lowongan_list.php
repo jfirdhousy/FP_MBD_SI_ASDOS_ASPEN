@@ -286,6 +286,32 @@ include_once __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 </div>
             </div>
+
+            <div class="modal fade" id="detailModal<?php echo $lowongan['lowongan_id']; ?>" tabindex="-1" aria-labelledby="detailModalLabel<?php echo $lowongan['lowongan_id']; ?>" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailModalLabel<?php echo $lowongan['lowongan_id']; ?>"><?php echo htmlspecialchars($lowongan['nama_lowongan']); ?></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Dosen:</strong> <?php echo htmlspecialchars($lowongan['nama_dosen']); ?> (<?php echo htmlspecialchars($lowongan['nama_departemen']); ?>)</p>
+                            <p><strong>Deskripsi:</strong><br><?php echo nl2br(htmlspecialchars($lowongan['deskripsi'])); ?></p>
+                            <p><strong>Jumlah Diterima:</strong> <?php echo htmlspecialchars($lowongan['jumlah_diterima']); ?></p>
+                            <p><strong>Jenis:</strong> <?php echo htmlspecialchars($lowongan['jenis']); ?></p>
+                            <p><strong>Tanggal Posting:</strong> <?php echo date('d M Y', strtotime($lowongan['tanggal_post'])); ?></p>
+                            <p><strong>Deadline:</strong> <?php echo date('d M Y', strtotime($lowongan['deadline'])); ?></p>
+                            <p><strong>Skill Dibutuhkan:</strong> <?php echo $lowongan['skill_yang_dibutuhkan'] ? htmlspecialchars($lowongan['skill_yang_dibutuhkan']) : 'Tidak ada'; ?></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'mahasiswa'): ?>
+                                <a href="<?php echo BASE_URL; ?>apply_form.php?lowongan_id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-success btn-sm ms-2">Lamar Sekarang</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <?php endforeach; ?>
 
         <?php render_pagination_links_lowongan($pagination_params, 'page'); ?>

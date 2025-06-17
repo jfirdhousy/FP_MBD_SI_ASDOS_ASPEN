@@ -44,4 +44,8 @@ pakai xampp apache mysql - localhost
 ## Dashboard Admin
 ![image](https://github.com/user-attachments/assets/b0a99393-237c-487f-bd8f-4261ced2933d)
 
+## Dashboard Mahasiswa
+![image](https://github.com/user-attachments/assets/08b3e265-5630-486c-9844-7f1185e38cad)
 
+## Apply Form
+![image](https://github.com/user-attachments/assets/70a43278-7028-459f-9f3a-511c16012675)
