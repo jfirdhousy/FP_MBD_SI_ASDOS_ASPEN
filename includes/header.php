@@ -66,6 +66,9 @@ if ($is_logged_in) {
                             <li class="nav-item">
                                 <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>admin_dashboard.php">Dashboard Admin</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'lamaran_list.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>lamaran_list.php">Lihat Lamaran</a>
+                            </li>
                         <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'lowongan_list.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>lowongan_list.php">Lihat Lowongan</a>
@@ -78,14 +81,14 @@ if ($is_logged_in) {
                         <li class="nav-item">
                             <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'login.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>login.php">Login</a>
                         </li>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown" id="registerDropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownRegister" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Register
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownRegister">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>register_mahasiswa.php">Mahasiswa</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>register_dosen.php">Dosen</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>register_admin.php">Admin</a></li> </ul>
+                            </ul>
                         </li>
                     <?php else: // Tampilkan nama user dan Logout jika sudah login ?>
                         <li class="nav-item">
@@ -101,4 +104,4 @@ if ($is_logged_in) {
             </div>
         </div>
     </nav>
-    <main class="container mt-4">
+    <main class="container mt-4 pt-5">

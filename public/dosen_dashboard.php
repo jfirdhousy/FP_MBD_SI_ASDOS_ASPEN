@@ -2,6 +2,8 @@
 // public/dosen_dashboard.php
 session_start();
 
+define('BASE_URL', '/FP_MBD_SI_ASDOS_ASPEN/public/');
+
 // Periksa apakah dosen sudah login
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'dosen') {
     header("Location: " . BASE_URL . "login.php");
@@ -14,6 +16,18 @@ $conn = getConnection();
 $dosen_nip = $_SESSION['user_id']; // NIP dosen yang login
 $message = ''; // Variabel untuk pesan umum
 $message_type = ''; // Tipe pesan (success, danger, info)
+
+// --- Menggunakan Fungsi HITUNG_LOWONGAN_PER_DOSEN ---
+$total_lowongan_dibuat = 0;
+try {
+    $stmt_total = $conn->prepare("SELECT HITUNG_LOWONGAN_PER_DOSEN(:dosen_nip) AS total_lowongan");
+    $stmt_total->bindParam(':dosen_nip', $dosen_nip);
+    $stmt_total->execute();
+    $total_lowongan_dibuat = $stmt_total->fetchColumn();
+} catch (PDOException $e) {
+    $message = "Gagal mengambil jumlah lowongan: " . $e->getMessage();
+    $message_type = 'danger';
+}
 
 // Ambil pesan dari parameter URL jika ada
 if (isset($_GET['msg']) && isset($_GET['type'])) {
@@ -102,7 +116,8 @@ include_once __DIR__ . '/../includes/header.php';
                     <p><strong>Email:</strong> <?php echo htmlspecialchars($profil_dosen['email']); ?></p>
                     <p><strong>No. Telp:</strong> <?php echo htmlspecialchars($profil_dosen['no_telp']); ?></p>
                     <p><strong>Departemen:</strong> <?php echo htmlspecialchars($profil_dosen['nama_departemen']); ?></p>
-                    <a href="#" class="btn btn-primary btn-sm">Edit Profil</a>
+                    <p><strong>Total Lowongan Dibuat:</strong> <?php echo $total_lowongan_dibuat; ?></p>
+                    <a href="<?php echo BASE_URL; ?>edit_profile.php" class="btn btn-primary btn-sm">Edit Profil</a>
                 </div>
             </div>
         <?php else: ?>
