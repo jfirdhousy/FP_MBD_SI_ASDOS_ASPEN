@@ -16,9 +16,19 @@ https://docs.google.com/document/d/1GpGBzmGowQ-ooEYG4mtm_oi9E1ZoDjpR/edit?usp=sh
 
 pakai xampp apache mysql - localhost
 
-# tampilan home yang seharusnya
+# Cara Testing
+1. install xampp - clone directory ini ke xampp/htdocs
+2. ke browser dan ketik http://localhost/FP_MBD_SI_ASDOS_ASPEN/public
+3. newtab ke browser dan ketik http://localhost/phpmyadmin/ dan buat database baru bernama 'fp_mbd_si_asdos_aspen' agar bisa testing login.php
+
+# tampilan 
+## Home
 ![Gambar WhatsApp 2025-06-14 pukul 15 38 44_45c1348c](https://github.com/user-attachments/assets/f84ab7cb-36b2-49c1-8b74-282ccb52cc59)
 
 ![Gambar WhatsApp 2025-06-14 pukul 15 38 45_fbd79482](https://github.com/user-attachments/assets/969e11cd-35e3-4e24-80dc-18d5cdcddab3)
+
+## Login 
+![image](https://github.com/user-attachments/assets/827bfefc-ca79-4106-80dc-5fd6c15b4a87)
+
 
 
