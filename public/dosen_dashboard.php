@@ -1,9 +1,10 @@
 <?php
+// public/dosen_dashboard.php
 session_start();
 
 // Periksa apakah dosen sudah login
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'dosen') {
-    header("Location: /FP_MBD_SI_ASDOS_ASPEN/public/login.php");
+    header("Location: " . BASE_URL . "login.php");
     exit();
 }
 
@@ -13,6 +14,12 @@ $conn = getConnection();
 $dosen_nip = $_SESSION['user_id']; // NIP dosen yang login
 $message = ''; // Variabel untuk pesan umum
 $message_type = ''; // Tipe pesan (success, danger, info)
+
+// Ambil pesan dari parameter URL jika ada
+if (isset($_GET['msg']) && isset($_GET['type'])) {
+    $message = htmlspecialchars($_GET['msg']);
+    $message_type = htmlspecialchars($_GET['type']);
+}
 
 // Ambil data profil dosen
 $query_profil_dosen = "
@@ -25,54 +32,47 @@ $stmt_profil_dosen->bindParam(':nip', $dosen_nip);
 $stmt_profil_dosen->execute();
 $profil_dosen = $stmt_profil_dosen->fetch(PDO::FETCH_ASSOC);
 
-// --- Ambil Daftar Lowongan Aktif dari VIEW_LOWONGAN_ACTIVE ---
+// --- Ambil Daftar Lowongan Aktif ---
+// Menggunakan VIEW_LOWONGAN_PER_DEPARTEMEN dari Anggota 4.
+// Menambahkan GROUP_CONCAT untuk menampilkan skill yang dibutuhkan.
 $active_lowongan_list = [];
-$query_active_lowongan_file_path = __DIR__ . '/../database/queries/view/view_active_lowongan.sql';
-
-if (file_exists($query_active_lowongan_file_path)) {
+try {
     $query_active_lowongan = "
-        SELECT lowongan_id, nama_lowongan, jenis_lowongan, jumlah_diterima, deadline, tanggal_post, nama_dosen, departemen
-        FROM VIEW_LOWONGAN_ACTIVE
-        WHERE dosen_nip = :nip_dosen_aktif -- Memfilter lowongan aktif yang dibuat oleh dosen ini
-        ORDER BY tanggal_post DESC;
+        SELECT vl.lowongan_id, vl.nama_lowongan, vl.jenis, vl.jumlah_diterima, vl.deadline, vl.tanggal_post, vl.nama_dosen, vl.nama_departemen,
+               GROUP_CONCAT(DISTINCT s.nama_skill SEPARATOR ', ') AS skills_needed
+        FROM lowongan l
+        JOIN VIEW_LOWONGAN_PER_DEPARTEMEN vl ON l.id = vl.lowongan_id -- Gabungkan dengan VIEW_LOWONGAN_PER_DEPARTEMEN
+        LEFT JOIN skill_lowongan sl ON l.id = sl.lowongan_id
+        LEFT JOIN skill s ON sl.skill_id = s.id
+        WHERE vl.dosen_nip = :nip_dosen_aktif AND vl.deadline >= CURDATE() -- Filter lowongan aktif milik dosen ini
+        GROUP BY vl.lowongan_id, vl.nama_lowongan, vl.jenis, vl.jumlah_diterima, vl.deadline, vl.tanggal_post, vl.nama_dosen, vl.nama_departemen
+        ORDER BY vl.tanggal_post DESC;
     ";
-    try {
-        $stmt_active_lowongan = $conn->prepare($query_active_lowongan);
-        $stmt_active_lowongan->bindParam(':nip_dosen_aktif', $dosen_nip);
-        $stmt_active_lowongan->execute();
-        $active_lowongan_list = $stmt_active_lowongan->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        $message = "Terjadi kesalahan saat mengambil lowongan aktif: " . $e->getMessage();
-        $message_type = 'danger';
-    }
-} else {
-    $message = "Error: File SQL untuk VIEW_LOWONGAN_ACTIVE tidak ditemukan di jalur yang diharapkan.";
+    $stmt_active_lowongan = $conn->prepare($query_active_lowongan);
+    $stmt_active_lowongan->bindParam(':nip_dosen_aktif', $dosen_nip);
+    $stmt_active_lowongan->execute();
+    $active_lowongan_list = $stmt_active_lowongan->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $message = "Terjadi kesalahan saat mengambil lowongan aktif: " . $e->getMessage();
     $message_type = 'danger';
 }
 
-// --- Ambil Daftar Riwayat Lowongan dari VIEW_RIWAYAT_LOWONGAN_STATISTIK ---
+// --- Ambil Daftar Riwayat Lowongan (sudah tidak aktif) ---
+// Menggunakan VIEW_RIWAYAT_LOWONGAN_STATISTIK dari Anggota 4.
 $riwayat_lowongan_list = [];
-$query_riwayat_lowongan_file_path = __DIR__ . '/../database/queries/view/riwayat_lowongan_statistic.sql';
-
-if (file_exists($query_riwayat_lowongan_file_path)) {
-    // Sama seperti VIEW_LOWONGAN_ACTIVE, VIEW ini sudah ada di database, cukup panggil.
+try {
     $query_riwayat_lowongan = "
         SELECT lowongan_id, nama_lowongan, jenis, tanggal_post, deadline, total_lamaran, lamaran_diterima, lamaran_ditolak
         FROM VIEW_RIWAYAT_LOWONGAN_STATISTIK
         WHERE dosen_nip = :nip_dosen_riwayat -- Memfilter riwayat lowongan yang dibuat oleh dosen ini
         ORDER BY deadline DESC;
     ";
-    try {
-        $stmt_riwayat_lowongan = $conn->prepare($query_riwayat_lowongan);
-        $stmt_riwayat_lowongan->bindParam(':nip_dosen_riwayat', $dosen_nip);
-        $stmt_riwayat_lowongan->execute();
-        $riwayat_lowongan_list = $stmt_riwayat_lowongan->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        $message = "Terjadi kesalahan saat mengambil riwayat lowongan: " . $e->getMessage();
-        $message_type = 'danger';
-    }
-} else {
-    $message = "Error: File SQL untuk VIEW_RIWAYAT_LOWONGAN_STATISTIK tidak ditemukan di jalur yang diharapkan.";
+    $stmt_riwayat_lowongan = $conn->prepare($query_riwayat_lowongan);
+    $stmt_riwayat_lowongan->bindParam(':nip_dosen_riwayat', $dosen_nip);
+    $stmt_riwayat_lowongan->execute();
+    $riwayat_lowongan_list = $stmt_riwayat_lowongan->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $message = "Terjadi kesalahan saat mengambil riwayat lowongan: " . $e->getMessage();
     $message_type = 'danger';
 }
 
@@ -93,7 +93,6 @@ include_once __DIR__ . '/../includes/header.php';
 
         <hr>
 
-        <!-- Profil Dosen -->
         <h4 class="mb-3">Profil Saya</h4>
         <?php if ($profil_dosen): ?>
             <div class="card mb-4">
@@ -114,9 +113,8 @@ include_once __DIR__ . '/../includes/header.php';
 
         <hr>
 
-        <!-- Lowongan yang Masih Aktif -->
         <h4 class="mb-3">Lowongan Aktif Saya</h4>
-        <a href="/FP_MBD_SI_ASDOS_ASPEN/public/create_lowongan.php" class="btn btn-success mb-3">Buat Lowongan Baru</a>
+        <a href="<?php echo BASE_URL; ?>create_lowongan.php" class="btn btn-success mb-3"><i class="bi bi-plus-circle-fill me-2"></i>Buat Lowongan Baru</a>
 
         <?php if (!empty($active_lowongan_list)): ?>
         <div class="table-responsive">
@@ -128,6 +126,7 @@ include_once __DIR__ . '/../includes/header.php';
                         <th>Tanggal Post</th>
                         <th>Deadline</th>
                         <th>Jumlah Diterima</th>
+                        <th>Skill Dibutuhkan</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -135,14 +134,26 @@ include_once __DIR__ . '/../includes/header.php';
                     <?php foreach ($active_lowongan_list as $lowongan): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($lowongan['nama_lowongan']); ?></td>
-                        <td><?php echo htmlspecialchars($lowongan['jenis_lowongan']); ?></td>
+                        <td><?php echo htmlspecialchars($lowongan['jenis']); ?></td>
                         <td><?php echo date('d M Y', strtotime($lowongan['tanggal_post'])); ?></td>
                         <td><?php echo date('d M Y', strtotime($lowongan['deadline'])); ?></td>
                         <td><?php echo htmlspecialchars($lowongan['jumlah_diterima']); ?></td>
                         <td>
-                            <a href="/FP_MBD_SI_ASDOS_ASPEN/public/detail_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-info btn-sm">Detail</a>
-                            <a href="/FP_MBD_SI_ASDOS_ASPEN/public/edit_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="/FP_MBD_SI_ASDOS_ASPEN/public/delete_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-danger btn-sm">Hapus</a>
+                            <?php
+                            if (!empty($lowongan['skills_needed'])) {
+                                $skills = explode(', ', $lowongan['skills_needed']);
+                                foreach ($skills as $skill) {
+                                    echo '<span class="badge bg-secondary me-1">' . htmlspecialchars($skill) . '</span>';
+                                }
+                            } else {
+                                echo '-';
+                            }
+                            ?>
+                        </td>
+                        <td>
+                            <a href="<?php echo BASE_URL; ?>detail_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-info btn-sm"><i class="bi bi-info-circle me-1"></i>Detail</a>
+                            <a href="<?php echo BASE_URL; ?>edit_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-warning btn-sm"><i class="bi bi-pencil-fill me-1"></i>Edit</a>
+                            <a href="<?php echo BASE_URL; ?>delete_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus lowongan ini? Ini akan menghapus semua lamaran terkait!');"><i class="bi bi-trash-fill me-1"></i>Hapus</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -157,7 +168,6 @@ include_once __DIR__ . '/../includes/header.php';
 
         <hr>
 
-        <!-- Lowongan Riwayat (Tidak Aktif) -->
         <h4 class="mb-3">Riwayat Lowongan</h4>
 
         <?php if (!empty($riwayat_lowongan_list)): ?>
@@ -186,9 +196,8 @@ include_once __DIR__ . '/../includes/header.php';
                         <td><span class="badge bg-success"><?php echo htmlspecialchars($lowongan['lamaran_diterima']); ?></span></td>
                         <td><span class="badge bg-danger"><?php echo htmlspecialchars($lowongan['lamaran_ditolak']); ?></span></td>
                         <td>
-                            <a href="/FP_MBD_SI_ASDOS_ASPEN/public/lowongan_detail.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-info btn-sm">Detail</a>
-                            <!-- Tambahan aksi seperti lihat daftar pelamar riwayat -->
-                        </td>
+                            <a href="<?php echo BASE_URL; ?>detail_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-info btn-sm">Detail</a>
+                            </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

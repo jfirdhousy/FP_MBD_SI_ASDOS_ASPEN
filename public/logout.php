@@ -11,6 +11,6 @@ if (ini_get("session.use_cookies")) {
 }
 session_destroy();
 
-header("Location: /sistem_lowongan_asisten_simple/public/login.php");
+header("Location: /FP_MBD_SI_ASDOS_ASPEN/public/login.php");
 exit();
 ?>

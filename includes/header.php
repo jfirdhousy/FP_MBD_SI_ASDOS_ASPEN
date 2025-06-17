@@ -1,9 +1,14 @@
 <?php
+// includes/header.php
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-define('BASE_URL', '/FP_MBD_SI_ASDOS_ASPEN/public/');
+// Pastikan BASE_URL sudah didefinisikan
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/FP_MBD_SI_ASDOS_ASPEN/public/'); // Sesuaikan dengan path proyek Anda
+}
 
 $is_logged_in = isset($_SESSION['user_id']);
 $user_role = 'guest';
@@ -39,17 +44,16 @@ if ($is_logged_in) {
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>" aria-current="page" href="<?php echo BASE_URL; ?>">Home</a>
-                    </li>
-
-                    <?php if ($user_role !== 'guest'): ?>
+                    <?php if (!$is_logged_in): // Jika belum login, tampilkan Home dan Daftar Lowongan umum ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>" aria-current="page" href="<?php echo BASE_URL; ?>">Home</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'lowongan_list.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>lowongan_list.php">Daftar Lowongan</a>
                         </li>
                     <?php endif; ?>
 
-                    <?php if ($is_logged_in && $user_role !== 'guest'): ?>
+                    <?php if ($is_logged_in): // Jika sudah login, tampilkan dashboard sesuai peran ?>
                         <?php if ($user_role == 'dosen'): ?>
                             <li class="nav-item">
                                 <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'dosen_dashboard.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>dosen_dashboard.php">Dashboard Dosen</a>
@@ -63,11 +67,14 @@ if ($is_logged_in) {
                                 <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>admin_dashboard.php">Dashboard Admin</a>
                             </li>
                         <?php endif; ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'lowongan_list.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>lowongan_list.php">Lihat Lowongan</a>
+                        </li>
                     <?php endif; ?>
                 </ul>
 
                 <ul class="navbar-nav">
-                    <?php if (!$is_logged_in): ?>
+                    <?php if (!$is_logged_in): // Tampilkan Login dan Register jika belum login ?>
                         <li class="nav-item">
                             <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'login.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>login.php">Login</a>
                         </li>
@@ -78,9 +85,9 @@ if ($is_logged_in) {
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownRegister">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>register_mahasiswa.php">Mahasiswa</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>register_dosen.php">Dosen</a></li>
-                            </ul>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>register_admin.php">Admin</a></li> </ul>
                         </li>
-                    <?php else: ?>
+                    <?php else: // Tampilkan nama user dan Logout jika sudah login ?>
                         <li class="nav-item">
                             <span class="navbar-text me-2">
                                 Halo, <strong><?php echo $user_name; ?></strong>! (<?php echo ucfirst($user_role); ?>)

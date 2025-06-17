@@ -108,7 +108,7 @@ include_once __DIR__ . '/../includes/header.php';
                 </form>
             </div>
             <div class="card-footer text-center">
-                Belum punya akun? <a href="/sistem_lowongan_asisten_simple/public/register_mahasiswa.php">Daftar Mahasiswa</a> atau <a href="/sistem_lowongan_asisten_simple/public/register_dosen.php">Daftar Dosen</a>
+                Belum punya akun? <a href="/FP_MBD_SI_ASDOS_ASPEN/public/register_mahasiswa.php">Daftar Mahasiswa</a> atau <a href="/FP_MBD_SI_ASDOS_ASPEN/public/register_dosen.php">Daftar Dosen</a>
             </div>
         </div>
     </div>
