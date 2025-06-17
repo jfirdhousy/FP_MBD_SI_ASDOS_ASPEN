@@ -129,7 +129,7 @@ include_once __DIR__ . '/../includes/header.php';
                     </ul>
                     <a href="#" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailModal<?php echo $lowongan['lowongan_id']; ?>">Lihat Detail</a>
                     <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'mahasiswa'): ?>
-                        <a href="#" class="btn btn-success btn-sm ms-2">Lamar Sekarang</a> <?php elseif (!isset($_SESSION['user_id'])): ?>
+                        <a href="<?php echo BASE_URL; ?>apply_form.php?lowongan_id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-success btn-sm ms-2">Lamar Sekarang</a> <?php elseif (!isset($_SESSION['user_id'])): ?>
                         <a href="<?php echo BASE_URL; ?>login.php" class="btn btn-success btn-sm ms-2">Login untuk Lamar</a>
                     <?php endif; ?>
                 </div>
@@ -154,7 +154,7 @@ include_once __DIR__ . '/../includes/header.php';
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                             <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'mahasiswa'): ?>
-                                <a href="#" class="btn btn-success">Lamar Sekarang</a>
+                                <a href="<?php echo BASE_URL; ?>apply_form.php?lowongan_id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-success btn-sm ms-2">Lamar Sekarang</a>
                             <?php endif; ?>
                         </div>
                     </div>
