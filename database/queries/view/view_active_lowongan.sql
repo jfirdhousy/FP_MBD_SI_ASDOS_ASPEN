@@ -3,10 +3,10 @@ SELECT
     l.id AS lowongan_id,
     l.nama_lowongan,
     l.jenis AS jenis_lowongan,
+    l.deskripsi,
     l.jumlah_diterima,
     l.deadline,
     l.tanggal_post,
-    d.nip AS dosen_nip,
     d.nama_dosen,
     dep.nama_departemen AS departemen
 FROM

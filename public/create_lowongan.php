@@ -61,7 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 1. Insert Lowongan Baru
             $query_lowongan = "INSERT INTO lowongan (nama_lowongan, deskripsi, jumlah_diterima, jenis, deadline, dosen_nip)
                                VALUES (:nama_lowongan, :deskripsi, :jumlah_diterima, :jenis, :deadline, :dosen_nip)";
-            // PERHATIKAN: tanggal_post DIHAPUS dari daftar kolom, karena trigger akan mengaturnya.
             
             $stmt_lowongan = $conn->prepare($query_lowongan);
 
@@ -69,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_lowongan->bindParam(':deskripsi', $deskripsi);
             $stmt_lowongan->bindParam(':jumlah_diterima', $jumlah_diterima, PDO::PARAM_INT);
             $stmt_lowongan->bindParam(':jenis', $jenis);
-            // $stmt_lowongan->bindParam(':tanggal_post', date('Y-m-d')); // BARIS INI DIHAPUS
             $stmt_lowongan->bindParam(':deadline', $deadline);
             $stmt_lowongan->bindParam(':dosen_nip', $dosen_nip);
 
@@ -92,16 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Komit transaksi jika semua berhasil
             $conn->commit();
-            $message = "Lowongan dan skill yang dibutuhkan berhasil dibuat!";
-            $message_type = 'success';
-
-            // Bersihkan data form setelah berhasil
-            $nama_lowongan = '';
-            $deskripsi = '';
-            $jumlah_diterima = '';
-            $jenis = '';
-            $deadline = '';
-            $selected_skills = []; // Pastikan ini juga direset
+            
+            // --- REDIRECT KE DOSEN DASHBOARD SETELAH BERHASIL ---
+            header("Location: " . BASE_URL . "dosen_dashboard.php?msg=lowongan_created");
+            exit(); // Penting untuk menghentikan eksekusi script setelah redirect
             
         } catch (PDOException $e) {
             // Rollback transaksi jika terjadi kesalahan
@@ -114,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Terjadi kesalahan database: " . $e->getMessage();
             }
             $message_type = 'danger';
+            // Jika ada error, form tidak dibersihkan agar user bisa perbaiki input
         }
     }
 }
@@ -160,7 +153,6 @@ include_once __DIR__ . '/../includes/header.php';
                         <input type="date" class="form-control" id="deadline" name="deadline" required value="<?php echo htmlspecialchars($deadline); ?>">
                     </div>
 
-                    <!-- Input untuk memilih skill -->
                     <div class="mb-3">
                         <label class="form-label">Skill yang Dibutuhkan:</label>
                         <?php if (!empty($skills)): ?>
@@ -186,7 +178,7 @@ include_once __DIR__ . '/../includes/header.php';
                     </div>
 
                     <button type="submit" class="btn btn-primary">Buat Lowongan</button>
-                    <a href="/FP_MBD_SI_ASDOS_ASPEN/public/dosen_dashboard.php" class="btn btn-secondary ms-2">Batal</a>
+                    <a href="<?php echo BASE_URL; ?>dosen_dashboard.php" class="btn btn-secondary ms-2">Batal</a>
                 </form>
             </div>
         </div>

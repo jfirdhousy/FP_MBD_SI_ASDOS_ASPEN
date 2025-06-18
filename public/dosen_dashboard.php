@@ -17,7 +17,14 @@ $dosen_nip = $_SESSION['user_id']; // NIP dosen yang login
 $message = ''; // Variabel untuk pesan umum
 $message_type = ''; // Tipe pesan (success, danger, info)
 
-// --- Menggunakan Fungsi HITUNG_LOWONGAN_PER_DOSEN ---
+if (isset($_GET['msg'])) {
+    if ($_GET['msg'] === 'lowongan_created') {
+        $message = "Lowongan berhasil dibuat!";
+        $message_type = 'success';
+    }
+}
+
+// --- Menggunakan Fungsi HITUNG_LOWONGAN_PER_DOSEN (Anggota 1)---
 $total_lowongan_dibuat = 0;
 try {
     $stmt_total = $conn->prepare("SELECT HITUNG_LOWONGAN_PER_DOSEN(:dosen_nip) AS total_lowongan");
@@ -72,7 +79,7 @@ try {
 }
 
 // --- Ambil Daftar Riwayat Lowongan (sudah tidak aktif) ---
-// Menggunakan VIEW_RIWAYAT_LOWONGAN_STATISTIK dari Anggota 4.
+// Menggunakan VIEW_RIWAYAT_LOWONGAN_STATISTIK dari Anggota 1.
 $riwayat_lowongan_list = [];
 try {
     $query_riwayat_lowongan = "
