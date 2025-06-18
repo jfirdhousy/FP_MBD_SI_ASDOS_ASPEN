@@ -1,3 +1,12 @@
+
+No. Kelompok	: 3
+Nama Anggota:
+5025231037 – Siti Zahra Ananda K.
+5025231051 – Jasmine Firdhousy M.
+5025231090 – Nadya Pricha Aufa
+5025231121 – Daffa Rafif Hafizhuddin
+
+
 # FP_MBD_SI_ASDOS_ASPEN
 MBD D 2025 Final Project - Sistem informasi Asisten Dosen atau Penelitian
 https://g.co/gemini/share/cdf13dcc92d9
