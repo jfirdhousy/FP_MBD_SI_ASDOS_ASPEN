@@ -112,6 +112,57 @@ try {
     $message_type = 'danger';
 }
 
+// Proses Tambah Skill
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'tambah_skill') {
+    $skill_id = $_POST['skill_id'] ?? null;
+
+    if ($skill_id) {
+        try {
+            $stmt_insert = $conn->prepare("INSERT IGNORE INTO mahasiswa_skill (mahasiswa_n, skill_id) VALUES (:nrp, :skill_id)");
+            $stmt_insert->bindParam(':nrp', $mahasiswa_nrp);
+            $stmt_insert->bindParam(':skill_id', $skill_id);
+            $stmt_insert->execute();
+
+            $message = "Skill berhasil ditambahkan.";
+            $message_type = "success";
+        } catch (PDOException $e) {
+            $message = "Gagal menambah skill: " . $e->getMessage();
+            $message_type = "danger";
+        }
+    }
+}
+
+// Proses Hapus Skill
+if (isset($_GET['hapus_skill']) && is_numeric($_GET['hapus_skill'])) {
+    $skill_id = $_GET['hapus_skill'];
+    try {
+        $stmt_delete = $conn->prepare("DELETE FROM mahasiswa_skill WHERE mahasiswa_n = :nrp AND skill_id = :skill_id");
+        $stmt_delete->bindParam(':nrp', $mahasiswa_nrp);
+        $stmt_delete->bindParam(':skill_id', $skill_id);
+        $stmt_delete->execute();
+
+        $message = "Skill berhasil dihapus.";
+        $message_type = "success";
+    } catch (PDOException $e) {
+        $message = "Gagal menghapus skill: " . $e->getMessage();
+        $message_type = "danger";
+    }
+}
+
+$all_skills = [];
+$skill_list = [];
+try {
+    $stmt_all_skills = $conn->query("SELECT id, nama_skill FROM skill ORDER BY nama_skill");
+    $all_skills = $stmt_all_skills->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt_mahasiswa_skills = $conn->prepare("SELECT s.id, s.nama_skill FROM mahasiswa_skill ms JOIN skill s ON ms.skill_id = s.id WHERE ms.mahasiswa_n = :nrp");
+    $stmt_mahasiswa_skills->bindParam(':nrp', $mahasiswa_nrp);
+    $stmt_mahasiswa_skills->execute();
+    $skill_list = $stmt_mahasiswa_skills->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $message = "Gagal mengambil data skill: " . $e->getMessage();
+    $message_type = "danger";
+}
 
 include_once __DIR__ . '/../includes/header.php';
 ?>
@@ -256,6 +307,62 @@ include_once __DIR__ . '/../includes/header.php';
                 Anda belum memiliki riwayat lamaran (yang diterima atau ditolak).
             </div>
         <?php endif; ?>
+
+        <hr>
+
+<h4 class="mb-3">Skill Saya</h4>
+        
+<form method="POST" class="mb-3 d-flex align-items-end gap-2">
+    <div class="form-group flex-grow-1">
+        <label for="skill_id">Tambah Skill</label>
+        <select name="skill_id" id="skill_id" class="form-control" required>
+            <option value="">-- Pilih Skill --</option>
+            <?php foreach ($all_skills as $skill): ?>
+                <?php
+                    $sudah_dipunya = false;
+                    foreach ($skill_list as $owned) {
+                        if ($owned['id'] == $skill['id']) {
+                            $sudah_dipunya = true;
+                            break;
+                        }
+                    }
+                    if ($sudah_dipunya) continue;
+                ?>
+                <option value="<?= $skill['id']; ?>"><?= htmlspecialchars($skill['nama_skill']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <input type="hidden" name="action" value="tambah_skill">
+    <button type="submit" class="btn btn-success">Tambah</button>
+</form>
+
+<?php if (!empty($skill_list)): ?>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nama Skill</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $no = 1; foreach ($skill_list as $skill): ?>
+                    <tr>
+                        <td><?= $no++; ?></td>
+                        <td><?= htmlspecialchars($skill['nama_skill']); ?></td>
+                        <td>
+                            <a href="?hapus_skill=<?= $skill['id']; ?>" class="btn btn-sm btn-danger"
+                               onclick="return confirm('Yakin ingin menghapus skill ini?')">Hapus</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php else: ?>
+    <div class="alert alert-info">Anda belum memiliki skill yang terdaftar.</div>
+<?php endif; ?>
 
     </div>
 </div>
