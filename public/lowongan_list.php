@@ -12,17 +12,19 @@ $conn = getConnection();
 // --- Konfigurasi Paginasi ---
 $items_per_page = 5; // Jumlah lowongan per halaman
 
-// --- Fungsi Helper untuk Paginasi (disalin dari admin_dashboard.php) ---
+// --- Fungsi Helper untuk Paginasi ---
 function get_pagination_params_lowongan($conn, $base_query_for_count, $params_for_count, $page_param_name, $items_per_page) {
     $current_page = isset($_GET[$page_param_name]) ? (int)$_GET[$page_param_name] : 1;
     if ($current_page < 1) $current_page = 1;
 
     // Hitung total item yang cocok dengan filter
     $stmt_count = $conn->prepare($base_query_for_count);
+    // BIND PARAMETER DI SINI UNTUK QUERY COUNT
     foreach ($params_for_count as $param => $value) {
-        $stmt_count->bindValue($param, $value);
+        // Penting: bindValue() agar tipe data bisa otomatis dideteksi atau diatur manual jika perlu
+        $stmt_count->bindValue($param, $value); 
     }
-    $stmt_count->execute();
+    $stmt_count->execute(); // BARIS 25 YANG MUNCUL ERROR
     $total_items = $stmt_count->fetchColumn();
 
     $total_pages = ceil($total_items / $items_per_page);
@@ -39,15 +41,13 @@ function get_pagination_params_lowongan($conn, $base_query_for_count, $params_fo
     ];
 }
 
-// Fungsi Helper untuk render link paginasi (disalin dari admin_dashboard.php)
-// Disesuaikan untuk lowongan_list agar mempertahankan filter dan sorting
+// Fungsi Helper untuk render link paginasi (tidak ada perubahan pada fungsi ini)
 function render_pagination_links_lowongan($pagination_params, $page_param_name) {
     $current_page = $pagination_params['current_page'];
     $total_pages = $pagination_params['total_pages'];
 
     if ($total_pages <= 1) return;
 
-    // Ambil semua parameter GET kecuali parameter halaman paginasi
     $query_params = $_GET;
     unset($query_params[$page_param_name]);
 
@@ -57,23 +57,17 @@ function render_pagination_links_lowongan($pagination_params, $page_param_name) 
         $base_url .= $base_query_string . '&';
     }
 
-
     $output = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
-
-    // Previous button
     $output .= '<li class="page-item ' . ($current_page <= 1 ? 'disabled' : '') . '">';
     $output .= '<a class="page-link" href="' . $base_url . $page_param_name . '=' . ($current_page - 1) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>';
     $output .= '</li>';
 
-    // Page numbers
     $start_page = max(1, $current_page - 2);
     $end_page = min($total_pages, $current_page + 2);
 
     if ($start_page > 1) {
         $output .= '<li class="page-item"><a class="page-link" href="' . $base_url . $page_param_name . '=1">1</a></li>';
-        if ($start_page > 2) {
-            $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
-        }
+        if ($start_page > 2) { $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>'; }
     }
 
     for ($i = $start_page; $i <= $end_page; $i++) {
@@ -83,13 +77,10 @@ function render_pagination_links_lowongan($pagination_params, $page_param_name) 
     }
 
     if ($end_page < $total_pages) {
-        if ($end_page < $total_pages - 1) {
-            $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
-        }
+        if ($end_page < $total_pages - 1) { $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>'; }
         $output .= '<li class="page-item"><a class="page-link" href="' . $base_url . $page_param_name . '=' . $total_pages . '">' . $total_pages . '</a></li>';
     }
 
-    // Next button
     $output .= '<li class="page-item ' . ($current_page >= $total_pages ? 'disabled' : '') . '">';
     $output .= '<a class="page-link" href="' . $base_url . $page_param_name . '=' . ($current_page + 1) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>';
     $output .= '</li>';
@@ -108,7 +99,7 @@ $sort_by = $_GET['sort_by'] ?? 'tanggal_post'; // Default sort
 $sort_order = $_GET['sort_order'] ?? 'DESC'; // Default order
 
 // Pastikan kolom sorting valid untuk mencegah SQL Injection
-$valid_sort_columns = ['tanggal_post', 'deadline', 'nama_lowongan', 'nama_dosen', 'departemen']; // Menambah kolom dari VIEW
+$valid_sort_columns = ['tanggal_post', 'deadline', 'nama_lowongan', 'nama_dosen', 'departemen']; // Kolom dari VIEW_LOWONGAN_ACTIVE
 $valid_sort_orders = ['ASC', 'DESC'];
 
 if (!in_array($sort_by, $valid_sort_columns)) {
@@ -118,8 +109,7 @@ if (!in_array(strtoupper($sort_order), $valid_sort_orders)) {
     $sort_order = 'DESC';
 }
 
-
-// Ambil daftar departemen untuk filter (Logika Anggota 4)
+// Ambil daftar departemen untuk filter
 $departemen_filter_options = [];
 try {
     $stmt_dept_filter = $conn->query("SELECT id, nama_departemen FROM departemen ORDER BY nama_departemen ASC");
@@ -128,7 +118,7 @@ try {
     // Handle error
 }
 
-// Ambil daftar skill untuk filter (Logika Anggota 3)
+// Ambil daftar skill untuk filter
 $skill_filter_options = [];
 try {
     $stmt_skill_filter = $conn->query("SELECT id, nama_skill FROM skill ORDER BY nama_skill ASC");
@@ -137,14 +127,15 @@ try {
     // Handle error
 }
 
-// --- Membangun Query Dasar untuk COUNT dan SELECT MENGGUNAKAN VIEW_LOWONGAN_ACTIVE (Anggota 1)---
+// --- Membangun Query Dasar untuk COUNT dan SELECT MENGGUNAKAN VIEW_LOWONGAN_ACTIVE ---
+// Penting: Gunakan NAMA PARAMETER YANG SAMA di query SELECT dan COUNT
 $base_query_select = "
     SELECT vla.*,
            GROUP_CONCAT(DISTINCT s.nama_skill ORDER BY s.nama_skill SEPARATOR ', ') AS skill_yang_dibutuhkan
     FROM VIEW_LOWONGAN_ACTIVE vla
     LEFT JOIN skill_lowongan sl ON vla.lowongan_id = sl.lowongan_id
     LEFT JOIN skill s ON sl.skill_id = s.id
-    WHERE 1=1 "; // Filter dasar, karena WHERE l.deadline >= CURDATE() sudah ada di VIEW
+    WHERE 1=1 "; 
 
 $base_query_count = "
     SELECT COUNT(DISTINCT vla.lowongan_id)
@@ -156,28 +147,26 @@ $base_query_count = "
 $query_params_for_binding = [];
 
 if ($search_departemen_id > 0) {
-    $base_query_select .= " AND vla.departemen = (SELECT nama_departemen FROM departemen WHERE id = :departemen_id_filter) "; // Filter berdasarkan nama departemen dari view
-    $base_query_count .= " AND vla.departemen = (SELECT nama_departemen FROM departemen WHERE id = :departemen_id_filter_count) ";
-    $query_params_for_binding[':departemen_id_filter'] = $search_departemen_id;
-    $query_params_for_binding[':departemen_id_filter_count'] = $search_departemen_id;
+    $base_query_select .= " AND vla.departemen = (SELECT nama_departemen FROM departemen WHERE id = :departemen_id_param) "; // Nama parameter diubah
+    $base_query_count .= " AND vla.departemen = (SELECT nama_departemen FROM departemen WHERE id = :departemen_id_param) "; // Nama parameter diubah
+    $query_params_for_binding[':departemen_id_param'] = $search_departemen_id; // Nama parameter diubah
 }
 if ($search_skill_id > 0) {
-    $base_query_select .= " AND vla.lowongan_id IN (SELECT lowongan_id FROM skill_lowongan WHERE skill_id = :skill_id) ";
-    $base_query_count .= " AND vla.lowongan_id IN (SELECT lowongan_id FROM skill_lowongan WHERE skill_id = :skill_id_count) ";
-    $query_params_for_binding[':skill_id'] = $search_skill_id;
-    $query_params_for_binding[':skill_id_count'] = $search_skill_id;
+    $base_query_select .= " AND vla.lowongan_id IN (SELECT lowongan_id FROM skill_lowongan WHERE skill_id = :skill_id_param) "; // Nama parameter diubah
+    $base_query_count .= " AND vla.lowongan_id IN (SELECT lowongan_id FROM skill_lowongan WHERE skill_id = :skill_id_param) "; // Nama parameter diubah
+    $query_params_for_binding[':skill_id_param'] = $search_skill_id; // Nama parameter diubah
 }
 if (!empty($search_keyword)) {
-    $base_query_select .= " AND (vla.nama_lowongan LIKE :keyword OR vla.deskripsi LIKE :keyword OR vla.nama_dosen LIKE :keyword) "; // Sesuaikan dengan kolom view
-    $base_query_count .= " AND (vla.nama_lowongan LIKE :keyword_count OR vla.deskripsi LIKE :keyword_count OR vla.nama_dosen LIKE :keyword_count) "; // Sesuaikan dengan kolom view
+    $base_query_select .= " AND (vla.nama_lowongan LIKE :keyword_param OR vla.deskripsi LIKE :keyword_param OR vla.nama_dosen LIKE :keyword_param) "; // Nama parameter diubah
+    $base_query_count .= " AND (vla.nama_lowongan LIKE :keyword_param OR vla.deskripsi LIKE :keyword_param OR vla.nama_dosen LIKE :keyword_param) "; // Nama parameter diubah
     $like_keyword = '%' . $search_keyword . '%';
-    $query_params_for_binding[':keyword'] = $like_keyword;
-    $query_params_for_binding[':keyword_count'] = $like_keyword;
+    $query_params_for_binding[':keyword_param'] = $like_keyword; // Nama parameter diubah
 }
 
 $base_query_select .= " GROUP BY vla.lowongan_id "; // Group by lowongan ID dari VIEW
 
 // --- Paginasi ---
+// Fungsi get_pagination_params_lowongan akan menerima $base_query_count dan $query_params_for_binding
 $pagination_params = get_pagination_params_lowongan($conn, $base_query_count, $query_params_for_binding, 'page', $items_per_page);
 $offset = $pagination_params['offset'];
 $limit = $pagination_params['limit'];
@@ -194,7 +183,7 @@ $stmt = $conn->prepare($final_query);
 foreach ($query_params_for_binding as $param => $value) {
     $stmt->bindValue($param, $value);
 }
-// Bind parameter paginasi
+// Bind parameter paginasi (limit dan offset)
 $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
@@ -287,9 +276,9 @@ include_once __DIR__ . '/../includes/header.php';
                     <h6 class="card-subtitle mb-2 text-muted">
                         Oleh: <?php echo htmlspecialchars($lowongan['nama_dosen']); ?> (<?php echo htmlspecialchars($lowongan['departemen']); ?>)
                     </h6>
-                    <p class="card-text"><?php echo nl2br(htmlspecialchars(substr($lowongan['deskripsi'], 0, 250))); ?>...</p>
-                    <ul class="list-group list-group-flush mb-3">
-                        <li class="list-group-item"><strong>Jenis:</strong> <?php echo htmlspecialchars($lowongan['jenis_lowongan']); ?></li> <li class="list-group-item"><strong>Batas Lamar:</strong> <span class="badge bg-danger"><?php echo date('d M Y', strtotime($lowongan['deadline'])); ?></span></li>
+                    <p class="card-text"><?php echo nl2br(htmlspecialchars($lowongan['deskripsi'])); ?>...</p> <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>Jenis:</strong> <?php echo htmlspecialchars($lowongan['jenis_lowongan']); ?></li>
+                        <li class="list-group-item"><strong>Batas Lamar:</strong> <span class="badge bg-danger"><?php echo date('d M Y', strtotime($lowongan['deadline'])); ?></span></li>
                         <li class="list-group-item"><strong>Skill Dibutuhkan:</strong> <?php echo $lowongan['skill_yang_dibutuhkan'] ? htmlspecialchars($lowongan['skill_yang_dibutuhkan']) : 'Tidak ada'; ?></li>
                     </ul>
                     <a href="<?php echo BASE_URL; ?>detail_lowongan.php?id=<?php echo $lowongan['lowongan_id']; ?>" class="btn btn-info btn-sm">Lihat Detail</a>
